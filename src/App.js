@@ -3,7 +3,7 @@ import axios from "axios";
 import { useState } from "react";
 
 function App() {
-  const url = `${process.env.API_URL}/clippings-notion`;
+  const url = `${process.env.REACT_APP_API_URL}/clippings-notion`;
   const [uploadFile, setUploadFile] = useState();
   const [data, setData] = useState({
     dateFrom: "",
@@ -47,7 +47,6 @@ function App() {
     <div className="App">
       <header className="App-header">
         <p style={{fontSize:"45px"}}>Kindle to Notion</p>
-
         <form onSubmit={submitForm}>
           Date from:
           <input
