@@ -3,7 +3,7 @@ import axios from "axios";
 import { useState } from "react";
 
 function App() {
-  const url = `${process.env.APIURL}/clippings-notion`;
+  const url = `${process.env.API_URL}/clippings-notion`;
   const [uploadFile, setUploadFile] = useState();
   const [data, setData] = useState({
     dateFrom: "",
