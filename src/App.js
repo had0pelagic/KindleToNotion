@@ -1,5 +1,14 @@
 import "./App.css";
+import "./style.css";
 import axios from "axios";
+import { Paper, Box, Typography, Button, TextField } from "@mui/material";
+// import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+// import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+// import { TimePicker } from "@mui/x-date-pickers/TimePicker";
+// import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+// import { DesktopDatePicker } from "@mui/x-date-pickers/DesktopDatePicker";
+import { makeStyles } from "@mui/material/styles";
+import HelpIcon from "@mui/icons-material/Help";
 import { useState } from "react";
 
 function App() {
@@ -46,7 +55,60 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <p style={{fontSize:"45px"}}>Kindle to Notion</p>
+        <Box className="Form-box" sx={{ backgroundColor: "#92ba92" }}>
+          <Paper
+            className="Form-paper-heading"
+            elevation={1}
+            sx={{ backgroundColor: "#78938a" }}
+          >
+            <Typography
+              className="Typography-heading"
+              sx={{ fontSize: "2rem" }}
+            >
+              {"Kindle To Notion"}
+            </Typography>
+          </Paper>
+
+          <Paper
+            className="Form-paper"
+            elevation={1}
+            sx={{ backgroundColor: "#f1ddbf" }}
+          >
+            <Box className="Form-help">
+              <Button className="Form-help-button">
+                <HelpIcon
+                  className="Form-help-icon"
+                  sx={{ color: "#525e75", fontSize: "2rem" }}
+                />
+              </Button>
+            </Box>
+            <Box className="Form-main">
+              {/* <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <DesktopDatePicker
+                  label="Date desktop"
+                  inputFormat="MM/dd/yyyy"
+                  // value={value}
+                  // onChange={handleChange}
+                  renderInput={(params) => <TextField {...params} />}
+                />
+              </LocalizationProvider> */}
+              <TextField
+                margin="normal"
+                id="Text"
+                label="Text"
+                variant="outlined"
+              />
+              <TextField
+                margin="normal"
+                id="Text"
+                label="Text"
+                variant="outlined"
+              />
+              <Button sx={{ color: "#525e75" }}>Submit</Button>
+            </Box>
+          </Paper>
+        </Box>
+        {/* <p style={{fontSize:"45px"}}>Kindle to Notion</p>
         <form onSubmit={submitForm}>
           Date from:
           <input
@@ -96,7 +158,7 @@ function App() {
           <br />
 
           <input type="submit" />
-        </form>
+        </form> */}
       </header>
     </div>
   );
