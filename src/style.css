@@ -3,7 +3,7 @@
   flex-direction: column;
   align-items: center;
   width: 600px;
-  height: 600px;
+  height: 100%;
   background-color: rgb(109, 109, 109);
 }
 
@@ -16,20 +16,14 @@
   justify-content: center;
 }
 
-.Typography-heading {
-}
-
 .Form-help {
   display: flex;
   justify-content: right;
   width: 100%;
 }
 
-.Form-help-button {
-}
-
 .Form-help-icon {
-  font-size: 333px;
+  margin: 5px;
 }
 
 .Form-paper {
@@ -47,7 +41,21 @@
 
 .Form-input {
   margin: 5px;
+  width: 50%;
 }
 
-.Form-submit-button {
+.Form-settings-input {
+  margin: 5px;
+  width: 57%;
+}
+
+.Form-settings-accordion {
+  margin: 30px;
+}
+
+.Form-settings-accordion-details {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
 }

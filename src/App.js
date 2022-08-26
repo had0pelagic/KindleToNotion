@@ -1,51 +1,65 @@
 import "./App.css";
 import "./style.css";
-import axios from "axios";
-import { Paper, Box, Typography, Button, TextField } from "@mui/material";
-// import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-// import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-// import { TimePicker } from "@mui/x-date-pickers/TimePicker";
-// import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
-// import { DesktopDatePicker } from "@mui/x-date-pickers/DesktopDatePicker";
-import { makeStyles } from "@mui/material/styles";
-import HelpIcon from "@mui/icons-material/Help";
 import { useState } from "react";
+import axios from "axios";
+import {
+  Paper,
+  Box,
+  Typography,
+  Button,
+  TextField,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+} from "@mui/material";
+import HelpIcon from "@mui/icons-material/Help";
+import ArrowDropDownRoundedIcon from "@mui/icons-material/ArrowDropDownRounded";
+import { DatePicker } from "@material-ui/pickers";
+import { MuiPickersUtilsProvider } from "@material-ui/pickers";
+import DateFnsUtils from "@date-io/date-fns";
 
 function App() {
   const url = `${process.env.REACT_APP_API_URL}/clippings-notion`;
   const [uploadFile, setUploadFile] = useState();
   const [data, setData] = useState({
-    dateFrom: "",
-    dateTo: "",
+    dateFrom: new Date(),
+    dateTo: new Date(),
     type: 1,
     databaseId: "",
     secret: "",
   });
 
-  const submitForm = async (event) => {
-    event.preventDefault();
+  const submitForm = async (e) => {
+    e.preventDefault();
+    console.log(data);
+    // const dataArray = new FormData();
+    // dataArray.append("File", uploadFile[0]);
+    // dataArray.append("DateFrom", data.dateFrom);
+    // dataArray.append("DateTo", data.dateTo);
+    // dataArray.append("Type", data.type);
+    // dataArray.append("DatabaseId", data.databaseId);
+    // dataArray.append("Secret", data.secret);
 
-    const dataArray = new FormData();
-    dataArray.append("File", uploadFile[0]);
-    dataArray.append("DateFrom", data.dateFrom);
-    dataArray.append("DateTo", data.dateTo);
-    dataArray.append("Type", data.type);
-    dataArray.append("DatabaseId", data.databaseId);
-    dataArray.append("Secret", data.secret);
-
-    await axios
-      .post(url, dataArray)
-      .then((response) => {
-        console.log(response.data);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    // await axios
+    //   .post(url, dataArray)
+    //   .then((response) => {
+    //     console.log(response.data);
+    //   })
+    //   .catch((error) => {
+    //     console.log(error);
+    //   });
   };
 
   const handleSearchChange = (e) => {
     e.preventDefault();
     const { id, value } = e.target;
+    setData((prevState) => ({
+      ...prevState,
+      [id]: value,
+    }));
+  };
+
+  const handleDateChange = (id, value) => {
     setData((prevState) => ({
       ...prevState,
       [id]: value,
@@ -65,7 +79,7 @@ function App() {
               className="Typography-heading"
               sx={{ fontSize: "2rem" }}
             >
-              {"Kindle To Notion"}
+              Kindle To Notion
             </Typography>
           </Paper>
 
@@ -75,36 +89,105 @@ function App() {
             sx={{ backgroundColor: "#f1ddbf" }}
           >
             <Box className="Form-help">
-              <Button className="Form-help-button">
-                <HelpIcon
-                  className="Form-help-icon"
-                  sx={{ color: "#525e75", fontSize: "2rem" }}
-                />
-              </Button>
+              <HelpIcon
+                className="Form-help-icon"
+                sx={{ color: "#525e75", fontSize: "1.4rem" }}
+                onClick={() => console.log("click")}
+              />
             </Box>
             <Box className="Form-main">
-              {/* <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <DesktopDatePicker
-                  label="Date desktop"
-                  inputFormat="MM/dd/yyyy"
-                  // value={value}
-                  // onChange={handleChange}
-                  renderInput={(params) => <TextField {...params} />}
+              <TextField
+                className="Form-input"
+                id="databaseId"
+                label="Database ID"
+                value={data.databaseId}
+                onChange={handleSearchChange}
+                variant="outlined"
+              />
+              <TextField
+                className="Form-input"
+                margin="normal"
+                id="secret"
+                label="Secret"
+                value={data.secret}
+                onChange={handleSearchChange}
+                variant="outlined"
+              />
+              <Button
+                variant="contained"
+                component="label"
+                sx={{ backgroundColor: "#525e75", margin: "10px 0px 0px 0px" }}
+              >
+                Upload MyClippings.txt
+                <input
+                  type="file"
+                  onChange={(e) => setUploadFile(e.target.files)}
+                  hidden
                 />
-              </LocalizationProvider> */}
-              <TextField
-                margin="normal"
-                id="Text"
-                label="Text"
-                variant="outlined"
-              />
-              <TextField
-                margin="normal"
-                id="Text"
-                label="Text"
-                variant="outlined"
-              />
-              <Button sx={{ color: "#525e75" }}>Submit</Button>
+              </Button>
+
+              {uploadFile ? (
+                <div>
+                  <Typography>{uploadFile[0].name}</Typography>
+                </div>
+              ) : (
+                <div></div>
+              )}
+
+              <Accordion
+                className="Form-settings-accordion"
+                sx={{ width: "95%", backgroundColor: "#f1ddbf" }}
+                elevation={0}
+              >
+                <AccordionSummary
+                  expandIcon={<ArrowDropDownRoundedIcon />}
+                  aria-controls="panel1a-content"
+                  id="panel1a-header"
+                >
+                  <Typography variant="h5" sx={{ fontSize: "1.3rem" }}>
+                    Settings
+                  </Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <div className="Form-settings-accordion-details">
+                    <MuiPickersUtilsProvider utils={DateFnsUtils}>
+                      <DatePicker
+                        className="Form-settings-input"
+                        label="Date from"
+                        inputVariant="outlined"
+                        value={data.dateFrom}
+                        onChange={(e) => handleDateChange("dateFrom", e)}
+                        animateYearScrolling
+                      />
+                      <DatePicker
+                        className="Form-settings-input"
+                        margin="normal"
+                        label="Date to"
+                        inputVariant="outlined"
+                        value={data.dateTo}
+                        onChange={(e) => handleDateChange("dateTo", e)}
+                        animateYearScrolling
+                      />
+                    </MuiPickersUtilsProvider>
+                    <TextField
+                      className="Form-settings-input"
+                      margin="normal"
+                      id="type"
+                      label="type"
+                      value={data.type}
+                      onChange={handleSearchChange}
+                      variant="outlined"
+                    />
+                  </div>
+                </AccordionDetails>
+              </Accordion>
+              <Button
+                variant="contained"
+                sx={{ backgroundColor: "#525e75", margin: "5px" }}
+                onClick={(e) => submitForm(e)}
+              >
+                Submit
+              </Button>
             </Box>
           </Paper>
         </Box>
@@ -127,37 +210,6 @@ function App() {
             onChange={handleSearchChange}
             placeholder="2022-11-11"
           />
-          <br />
-          Type:
-          <input
-            className="type"
-            id="type"
-            value={data.type}
-            onChange={handleSearchChange}
-          />
-          <br />
-          Database id:
-          <input
-            className="databaseId"
-            id="databaseId"
-            value={data.databaseId}
-            onChange={handleSearchChange}
-          />
-          <br />
-          Secret:
-          <input
-            className="secret"
-            id="secret"
-            value={data.secret}
-            onChange={handleSearchChange}
-            placeholder="secret_...."
-          />
-          <br />
-
-          <input type="file" onChange={(e) => setUploadFile(e.target.files)} />
-          <br />
-
-          <input type="submit" />
         </form> */}
       </header>
     </div>
