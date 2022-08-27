@@ -11,14 +11,22 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Checkbox,
+  MenuItem,
+  Select,
 } from "@mui/material";
 import HelpIcon from "@mui/icons-material/Help";
 import ArrowDropDownRoundedIcon from "@mui/icons-material/ArrowDropDownRounded";
-import { DatePicker } from "@material-ui/pickers";
-import { MuiPickersUtilsProvider } from "@material-ui/pickers";
+import { DatePicker, MuiPickersUtilsProvider } from "@material-ui/pickers";
 import DateFnsUtils from "@date-io/date-fns";
 
 function App() {
+  const types = {
+    0: "NOTE",
+    1: "HIGHLIGHT",
+    2: "BOOKMARK",
+    3: "ALL",
+  };
   const url = `${process.env.REACT_APP_API_URL}/clippings-notion`;
   const [uploadFile, setUploadFile] = useState();
   const [data, setData] = useState({
@@ -27,11 +35,15 @@ function App() {
     type: 1,
     databaseId: "",
     secret: "",
+    takeFirst: false,
+    takeLast: false,
+    limit: 0,
   });
 
   const submitForm = async (e) => {
     e.preventDefault();
     console.log(data);
+    console.log(uploadFile)
     // const dataArray = new FormData();
     // dataArray.append("File", uploadFile[0]);
     // dataArray.append("DateFrom", data.dateFrom);
@@ -66,18 +78,32 @@ function App() {
     }));
   };
 
+  const handleCheckboxChange = (id) => {
+    setData((prevState) => ({
+      ...prevState,
+      [id]: !prevState[id],
+    }));
+  };
+
+  const handleTypeSelectChange = (id) => {
+    setData((prevState) => ({
+      ...prevState,
+      ["type"]: id.target.value,
+    }));
+  };
+
   return (
     <div className="App">
       <header className="App-header">
-        <Box className="Form-box" sx={{ backgroundColor: "#92ba92" }}>
+        <Box className="Form-box" sx={{ backgroundColor: "transparent" }}>
           <Paper
             className="Form-paper-heading"
             elevation={1}
-            sx={{ backgroundColor: "#78938a" }}
+            sx={{ backgroundColor: "#3f51b5" }}
           >
             <Typography
               className="Typography-heading"
-              sx={{ fontSize: "2rem" }}
+              sx={{ fontSize: "2rem", color: "white" }}
             >
               Kindle To Notion
             </Typography>
@@ -116,7 +142,10 @@ function App() {
               <Button
                 variant="contained"
                 component="label"
-                sx={{ backgroundColor: "#525e75", margin: "10px 0px 0px 0px" }}
+                sx={{
+                  backgroundColor: "#3f51b5",
+                  margin: "10px 0px 0px 0px",
+                }}
               >
                 Upload MyClippings.txt
                 <input
@@ -169,21 +198,64 @@ function App() {
                         animateYearScrolling
                       />
                     </MuiPickersUtilsProvider>
-                    <TextField
-                      className="Form-settings-input"
-                      margin="normal"
+                    <Select
+                      labelId="demo-simple-select-label"
                       id="type"
-                      label="type"
                       value={data.type}
-                      onChange={handleSearchChange}
-                      variant="outlined"
-                    />
+                      label="Type"
+                      onChange={handleTypeSelectChange}
+                    >
+                      {Object.keys(types).map((key) => (
+                        <MenuItem key={key} value={key}>
+                          {types[key]}
+                        </MenuItem>
+                      ))}
+                    </Select>
+
+                    {!data.takeLast ? (
+                      <div className="Form-checkbox">
+                        <Typography>Take first?</Typography>
+                        <Checkbox
+                          onChange={() => handleCheckboxChange("takeFirst")}
+                        />
+                      </div>
+                    ) : (
+                      <></>
+                    )}
+
+                    {!data.takeFirst ? (
+                      <div className="Form-checkbox">
+                        <Typography>Take last?</Typography>
+                        <Checkbox
+                          onChange={() => handleCheckboxChange("takeLast")}
+                        />
+                      </div>
+                    ) : (
+                      <></>
+                    )}
+
+                    {data.takeFirst || data.takeLast ? (
+                      <TextField
+                        className="Form-settings-input"
+                        margin="normal"
+                        id="limit"
+                        label="Limit"
+                        value={data.limit}
+                        onChange={handleSearchChange}
+                        variant="outlined"
+                      />
+                    ) : (
+                      <></>
+                    )}
                   </div>
                 </AccordionDetails>
               </Accordion>
               <Button
                 variant="contained"
-                sx={{ backgroundColor: "#525e75", margin: "5px" }}
+                sx={{
+                  backgroundColor: "#3f51b5",
+                  margin: "0px 0px 15px 0px",
+                }}
                 onClick={(e) => submitForm(e)}
               >
                 Submit
@@ -191,26 +263,6 @@ function App() {
             </Box>
           </Paper>
         </Box>
-        {/* <p style={{fontSize:"45px"}}>Kindle to Notion</p>
-        <form onSubmit={submitForm}>
-          Date from:
-          <input
-            className="dateFrom"
-            id="dateFrom"
-            value={data.dateFrom}
-            onChange={handleSearchChange}
-            placeholder="2020-01-01"
-          />
-          <br />
-          Date to:
-          <input
-            className="dateTo"
-            id="dateTo"
-            value={data.dateTo}
-            onChange={handleSearchChange}
-            placeholder="2022-11-11"
-          />
-        </form> */}
       </header>
     </div>
   );
