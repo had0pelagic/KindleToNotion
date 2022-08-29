@@ -45,12 +45,11 @@
 }
 
 .Form-settings-input {
-  margin: 5px;
   width: 57%;
 }
 
 .Form-settings-accordion {
-  margin: 30px;
+  margin: 10px 0px 10px 0px;
 }
 
 .Form-settings-accordion-details {
@@ -63,5 +62,12 @@
 .Form-checkbox {
   display: flex;
   align-items: center;
+  justify-content: center;
+}
+
+.Form-upload {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
   justify-content: center;
 }

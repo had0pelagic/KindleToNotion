@@ -13,25 +13,28 @@ import {
   AccordionDetails,
   Checkbox,
   MenuItem,
-  Select,
+  Dialog,
+  DialogTitle,
+  DialogContent,
 } from "@mui/material";
 import HelpIcon from "@mui/icons-material/Help";
 import ArrowDropDownRoundedIcon from "@mui/icons-material/ArrowDropDownRounded";
 import { DatePicker, MuiPickersUtilsProvider } from "@material-ui/pickers";
 import DateFnsUtils from "@date-io/date-fns";
+import moment from "moment";
 
 function App() {
   const types = {
-    0: "NOTE",
-    1: "HIGHLIGHT",
-    2: "BOOKMARK",
-    3: "ALL",
+    0: "All",
+    1: "Note",
+    2: "Highlight",
+    3: "Bookmark",
   };
   const url = `${process.env.REACT_APP_API_URL}/clippings-notion`;
-  const [uploadFile, setUploadFile] = useState();
+  const [uploadFile, setUploadFile] = useState(null);
   const [data, setData] = useState({
-    dateFrom: new Date(),
-    dateTo: new Date(),
+    dateFrom: null,
+    dateTo: null,
     type: 1,
     databaseId: "",
     secret: "",
@@ -39,27 +42,35 @@ function App() {
     takeLast: false,
     limit: 0,
   });
+  const [open, setOpen] = useState(false);
 
   const submitForm = async (e) => {
     e.preventDefault();
-    console.log(data);
-    console.log(uploadFile)
-    // const dataArray = new FormData();
-    // dataArray.append("File", uploadFile[0]);
-    // dataArray.append("DateFrom", data.dateFrom);
-    // dataArray.append("DateTo", data.dateTo);
-    // dataArray.append("Type", data.type);
-    // dataArray.append("DatabaseId", data.databaseId);
-    // dataArray.append("Secret", data.secret);
+    const dataArray = new FormData();
+    dataArray.append("File", uploadFile);
+    dataArray.append("DateFrom", moment(data.dateFrom).format("YYYY-MM-DD"));
+    dataArray.append("DateTo", moment(data.dateTo).format("YYYY-MM-DD"));
+    dataArray.append("Type", data.type);
+    dataArray.append("DatabaseId", data.databaseId);
+    dataArray.append("TakeFirst", data.takeFirst);
+    dataArray.append("TakeLast", data.takeLast);
+    dataArray.append("Limit", data.limit);
+    dataArray.append("Secret", data.secret);
 
-    // await axios
-    //   .post(url, dataArray)
-    //   .then((response) => {
-    //     console.log(response.data);
-    //   })
-    //   .catch((error) => {
-    //     console.log(error);
-    //   });
+    await axios
+      .post(url, dataArray)
+      .then((response) => {
+        alert(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setUploadFile(e.target.files[0]);
+    }
   };
 
   const handleSearchChange = (e) => {
@@ -92,13 +103,21 @@ function App() {
     }));
   };
 
+  const handleDialog = () => {
+    setOpen(!open);
+  };
+
+  const handleFileReset = () => {
+    setUploadFile(null);
+  };
+
   return (
     <div className="App">
       <header className="App-header">
         <Box className="Form-box" sx={{ backgroundColor: "transparent" }}>
           <Paper
             className="Form-paper-heading"
-            elevation={1}
+            elevation={10}
             sx={{ backgroundColor: "#3f51b5" }}
           >
             <Typography
@@ -111,16 +130,38 @@ function App() {
 
           <Paper
             className="Form-paper"
-            elevation={1}
+            elevation={10}
             sx={{ backgroundColor: "#f1ddbf" }}
           >
             <Box className="Form-help">
               <HelpIcon
                 className="Form-help-icon"
-                sx={{ color: "#525e75", fontSize: "1.4rem" }}
-                onClick={() => console.log("click")}
+                sx={{ color: "#3f51b5", fontSize: "1.4rem" }}
+                onClick={() => handleDialog()}
               />
             </Box>
+
+            <Dialog onClose={handleDialog} open={open}>
+              <DialogTitle variant="h5" sx={{ backgroundColor: "#f1ddbf" }}>
+                About
+              </DialogTitle>
+              <DialogContent dividers sx={{ backgroundColor: "#f1ddbf" }}>
+                <Typography variant="h6" gutterBottom>
+                  This tool is designed to send all clippings to your personal
+                  Notion workspace.
+                </Typography>
+                <Typography variant="h6" gutterBottom>
+                  To send clippings to Notion, enter your workspace Database Id,
+                  workspace secret and upload MyClippings.txt file from kindle.
+                </Typography>
+                <Typography variant="h6" gutterBottom>
+                  In settings, you can select date, type and be able to take a
+                  selected amount of clippings from the start or the back of the
+                  file.
+                </Typography>
+              </DialogContent>
+            </Dialog>
+
             <Box className="Form-main">
               <TextField
                 className="Form-input"
@@ -145,22 +186,25 @@ function App() {
                 sx={{
                   backgroundColor: "#3f51b5",
                   margin: "10px 0px 0px 0px",
+                  width: "45%",
                 }}
               >
                 Upload MyClippings.txt
                 <input
                   type="file"
-                  onChange={(e) => setUploadFile(e.target.files)}
+                  onChange={(e) => handleFileChange(e)}
+                  onClick={(e) => (e.target.value = null)}
                   hidden
                 />
               </Button>
 
               {uploadFile ? (
-                <div>
-                  <Typography>{uploadFile[0].name}</Typography>
+                <div className="Form-upload">
+                  <Typography>{uploadFile.name}</Typography>
+                  <Button onClick={() => handleFileReset()}>X</Button>
                 </div>
               ) : (
-                <div></div>
+                <></>
               )}
 
               <Accordion
@@ -173,7 +217,10 @@ function App() {
                   aria-controls="panel1a-content"
                   id="panel1a-header"
                 >
-                  <Typography variant="h5" sx={{ fontSize: "1.3rem" }}>
+                  <Typography
+                    variant="h5"
+                    sx={{ fontSize: "1.3rem", color: "black" }}
+                  >
                     Settings
                   </Typography>
                 </AccordionSummary>
@@ -182,6 +229,7 @@ function App() {
                     <MuiPickersUtilsProvider utils={DateFnsUtils}>
                       <DatePicker
                         className="Form-settings-input"
+                        margin="normal"
                         label="Date from"
                         inputVariant="outlined"
                         value={data.dateFrom}
@@ -198,11 +246,13 @@ function App() {
                         animateYearScrolling
                       />
                     </MuiPickersUtilsProvider>
-                    <Select
-                      labelId="demo-simple-select-label"
-                      id="type"
+                    <TextField
+                      className="Form-settings-input"
+                      margin="normal"
+                      select
                       value={data.type}
                       label="Type"
+                      id="type"
                       onChange={handleTypeSelectChange}
                     >
                       {Object.keys(types).map((key) => (
@@ -210,11 +260,11 @@ function App() {
                           {types[key]}
                         </MenuItem>
                       ))}
-                    </Select>
+                    </TextField>
 
                     {!data.takeLast ? (
                       <div className="Form-checkbox">
-                        <Typography>Take first?</Typography>
+                        <Typography>Take first</Typography>
                         <Checkbox
                           onChange={() => handleCheckboxChange("takeFirst")}
                         />
@@ -225,7 +275,7 @@ function App() {
 
                     {!data.takeFirst ? (
                       <div className="Form-checkbox">
-                        <Typography>Take last?</Typography>
+                        <Typography>Take last</Typography>
                         <Checkbox
                           onChange={() => handleCheckboxChange("takeLast")}
                         />
@@ -250,11 +300,13 @@ function App() {
                   </div>
                 </AccordionDetails>
               </Accordion>
+
               <Button
                 variant="contained"
                 sx={{
                   backgroundColor: "#3f51b5",
-                  margin: "0px 0px 15px 0px",
+                  margin: "0px 0px 20px 0px",
+                  width: "35%",
                 }}
                 onClick={(e) => submitForm(e)}
               >
