@@ -22,9 +22,9 @@ import { DatePicker, MuiPickersUtilsProvider } from "@material-ui/pickers";
 import DateFnsUtils from "@date-io/date-fns";
 import moment from "moment";
 import { ClippingTypes } from "../../util/type_enum";
+import api from "../../api";
 
 export default function Form() {
-  const url = `${process.env.REACT_APP_API_URL}/clippings-notion`;
   const [uploadFile, setUploadFile] = useState(null);
   const [data, setData] = useState({
     dateFrom: null,
@@ -51,14 +51,13 @@ export default function Form() {
     dataArray.append("Limit", data.limit);
     dataArray.append("Secret", data.secret);
 
-    await axios
-      .post(url, dataArray)
-      .then((response) => {
-        alert(response.data);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    const response = await api.post("/clippings-notion", dataArray);
+
+    if (response.status === 200) {
+      alert(response.data);
+    } else {
+      return;
+    }
   };
 
   const handleFileChange = (e) => {
