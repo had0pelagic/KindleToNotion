@@ -43,8 +43,12 @@
   width: 50%;
 }
 
-.Form-settings-input {
-  width: 57%;
+.Form-settings-date {
+  width: 235px;
+}
+
+.Form-settings-date-button {
+  width: 88%;
 }
 
 .Form-settings-accordion {
@@ -58,6 +62,14 @@
   align-items: center;
 }
 
+.Form-settings-type {
+  width: 46%;
+}
+
+.Form-settings-input {
+  width: 46%;
+}
+
 .Form-checkbox {
   display: flex;
   align-items: center;
@@ -65,6 +77,13 @@
 }
 
 .Form-upload {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  justify-content: center;
+}
+
+.Form-date {
   display: flex;
   align-items: center;
   flex-direction: row;

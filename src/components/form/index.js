@@ -1,6 +1,5 @@
 import "./style.css";
 import { useState } from "react";
-import axios from "axios";
 import {
   Paper,
   Box,
@@ -15,6 +14,8 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
+  Backdrop,
+  CircularProgress,
 } from "@mui/material";
 import HelpIcon from "@mui/icons-material/Help";
 import ArrowDropDownRoundedIcon from "@mui/icons-material/ArrowDropDownRounded";
@@ -30,20 +31,49 @@ export default function Form() {
     dateFrom: null,
     dateTo: null,
     type: 1,
-    databaseId: "",
-    secret: "",
+    databaseId: null,
+    secret: null,
     takeFirst: false,
     takeLast: false,
     limit: 0,
   });
-  const [open, setOpen] = useState(false);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [openBackdrop, setOpenBackdrop] = useState(false);
 
   const submitForm = async (e) => {
     e.preventDefault();
+
+    if (!isFormValid()) {
+      alert(
+        "Please fill:\n* Database id\n* Secret\n* Upload Clippings file"
+      );
+      return;
+    }
+
+    setOpenBackdrop(true);
+    const response = await api.post("/clippings-notion", formData());
+
+    if (response.status === 200) {
+      setOpenBackdrop(false);
+      alert(response.data);
+    } else {
+      setOpenBackdrop(false);
+      console.log(response.data.errors);
+    }
+  };
+
+  const formData = () => {
     const dataArray = new FormData();
+
     dataArray.append("File", uploadFile);
-    dataArray.append("DateFrom", moment(data.dateFrom).format("YYYY-MM-DD"));
-    dataArray.append("DateTo", moment(data.dateTo).format("YYYY-MM-DD"));
+    dataArray.append(
+      "DateFrom",
+      data.dateFrom ? moment(data.dateFrom).format("YYYY-MM-DD") : ""
+    );
+    dataArray.append(
+      "DateTo",
+      data.dateTo ? moment(data.dateTo).format("YYYY-MM-DD") : ""
+    );
     dataArray.append("Type", data.type);
     dataArray.append("DatabaseId", data.databaseId);
     dataArray.append("TakeFirst", data.takeFirst);
@@ -51,13 +81,21 @@ export default function Form() {
     dataArray.append("Limit", data.limit);
     dataArray.append("Secret", data.secret);
 
-    const response = await api.post("/clippings-notion", dataArray);
+    return dataArray;
+  };
 
-    if (response.status === 200) {
-      alert(response.data);
-    } else {
-      return;
+  const isFormValid = () => {
+    var valid = true;
+
+    if (uploadFile === null) {
+      valid = false;
+    } else if (data.databaseId === null) {
+      valid = false;
+    } else if (data.secret === null) {
+      valid = false;
     }
+
+    return valid;
   };
 
   const handleFileChange = (e) => {
@@ -82,6 +120,13 @@ export default function Form() {
     }));
   };
 
+  const handleDateReset = (id) => {
+    setData((prevState) => ({
+      ...prevState,
+      [id]: null,
+    }));
+  };
+
   const handleCheckboxChange = (id) => {
     setData((prevState) => ({
       ...prevState,
@@ -97,7 +142,7 @@ export default function Form() {
   };
 
   const handleDialog = () => {
-    setOpen(!open);
+    setOpenDialog(!openDialog);
   };
 
   const handleFileReset = () => {
@@ -106,21 +151,36 @@ export default function Form() {
 
   return (
     <Box className="Form-box" sx={{ backgroundColor: "transparent" }}>
+      <LoadingBackdrop openBackdrop={openBackdrop} />
       <FormHeading />
       <FormContent
         handleDialog={handleDialog}
-        open={open}
+        openDialog={openDialog}
         data={data}
         handleSearchChange={handleSearchChange}
         handleFileChange={handleFileChange}
         uploadFile={uploadFile}
         handleFileReset={handleFileReset}
         handleDateChange={handleDateChange}
+        handleDateReset={handleDateReset}
         handleTypeSelectChange={handleTypeSelectChange}
         handleCheckboxChange={handleCheckboxChange}
         submitForm={submitForm}
       />
     </Box>
+  );
+}
+
+function LoadingBackdrop({ openBackdrop }) {
+  return (
+    <>
+      <Backdrop
+        sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        open={openBackdrop}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
+    </>
   );
 }
 
@@ -143,13 +203,14 @@ function FormHeading() {
 
 function FormContent({
   handleDialog,
-  open,
+  openDialog,
   data,
   handleSearchChange,
   handleFileChange,
   uploadFile,
   handleFileReset,
   handleDateChange,
+  handleDateReset,
   handleTypeSelectChange,
   handleCheckboxChange,
   submitForm,
@@ -168,7 +229,7 @@ function FormContent({
         />
       </Box>
 
-      <HelpDialog handleDialog={handleDialog} open={open} />
+      <HelpDialog handleDialog={handleDialog} openDialog={openDialog} />
 
       <Box className="Form-main">
         <MainInputs
@@ -182,6 +243,7 @@ function FormContent({
         <SettingsAccordion
           data={data}
           handleDateChange={handleDateChange}
+          handleDateReset={handleDateReset}
           handleTypeSelectChange={handleTypeSelectChange}
           handleCheckboxChange={handleCheckboxChange}
           handleSearchChange={handleSearchChange}
@@ -203,9 +265,9 @@ function FormContent({
   );
 }
 
-function HelpDialog({ handleDialog, open }) {
+function HelpDialog({ handleDialog, openDialog }) {
   return (
-    <Dialog onClose={handleDialog} open={open}>
+    <Dialog onClose={handleDialog} open={openDialog}>
       <DialogTitle variant="h5" sx={{ backgroundColor: "#f1ddbf" }}>
         About
       </DialogTitle>
@@ -258,7 +320,7 @@ function MainInputs({
         component="label"
         sx={{
           backgroundColor: "#3f51b5",
-          margin: "10px 0px 0px 0px",
+          margin: "10px 0px 10px 0px",
           width: "45%",
         }}
       >
@@ -274,7 +336,18 @@ function MainInputs({
       {uploadFile ? (
         <div className="Form-upload">
           <Typography>{uploadFile.name}</Typography>
-          <Button onClick={() => handleFileReset()}>X</Button>
+          <Button
+            sx={{
+              minWidth: "1px",
+              maxWidth: "1px",
+              minHeight: "1px",
+              maxHeight: "1px",
+              marginLeft: "4px",
+            }}
+            onClick={() => handleFileReset()}
+          >
+            X
+          </Button>
         </div>
       ) : (
         <></>
@@ -286,6 +359,7 @@ function MainInputs({
 function SettingsAccordion({
   data,
   handleDateChange,
+  handleDateReset,
   handleTypeSelectChange,
   handleCheckboxChange,
   handleSearchChange,
@@ -308,27 +382,67 @@ function SettingsAccordion({
       <AccordionDetails>
         <div className="Form-settings-accordion-details">
           <MuiPickersUtilsProvider utils={DateFnsUtils}>
-            <DatePicker
-              className="Form-settings-input"
-              margin="normal"
-              label="Date from"
-              inputVariant="outlined"
-              value={data.dateFrom}
-              onChange={(e) => handleDateChange("dateFrom", e)}
-              animateYearScrolling
-            />
-            <DatePicker
-              className="Form-settings-input"
-              margin="normal"
-              label="Date to"
-              inputVariant="outlined"
-              value={data.dateTo}
-              onChange={(e) => handleDateChange("dateTo", e)}
-              animateYearScrolling
-            />
+            <div className="Form-date">
+              <DatePicker
+                className={`Form-settings-date${
+                  data.dateFrom === null ? "" : "-button"
+                }`}
+                margin="normal"
+                label="Date from"
+                inputVariant="outlined"
+                value={data.dateFrom}
+                onChange={(e) => handleDateChange("dateFrom", e)}
+                animateYearScrolling
+              />
+              {data.dateFrom ? (
+                <Button
+                  sx={{
+                    minWidth: "1px",
+                    maxWidth: "1px",
+                    minHeight: "1px",
+                    maxHeight: "1px",
+                    marginLeft: "4px",
+                  }}
+                  onClick={() => handleDateReset("dateFrom")}
+                >
+                  X
+                </Button>
+              ) : (
+                <></>
+              )}
+            </div>
+            <div className="Form-date">
+              <DatePicker
+                className={`Form-settings-date${
+                  data.dateTo === null ? "" : "-button"
+                }`}
+                margin="normal"
+                label="Date to"
+                inputVariant="outlined"
+                value={data.dateTo}
+                onChange={(e) => handleDateChange("dateTo", e)}
+                animateYearScrolling
+              />
+              {data.dateTo ? (
+                <Button
+                  onClick={() => handleDateReset("dateTo")}
+                  sx={{
+                    minWidth: "1px",
+                    maxWidth: "1px",
+                    minHeight: "1px",
+                    maxHeight: "1px",
+                    marginLeft: "4px",
+                  }}
+                >
+                  X
+                </Button>
+              ) : (
+                <></>
+              )}
+            </div>
           </MuiPickersUtilsProvider>
           <TextField
-            className="Form-settings-input"
+            className="Form-settings-type"
             margin="normal"
             select
             value={data.type}
