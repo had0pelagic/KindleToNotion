@@ -1,5 +1,7 @@
 import "./style.css";
 import { useState } from "react";
+import moment from "moment";
+import api from "../../api";
 import {
   Paper,
   Box,
@@ -21,9 +23,7 @@ import HelpIcon from "@mui/icons-material/Help";
 import ArrowDropDownRoundedIcon from "@mui/icons-material/ArrowDropDownRounded";
 import { DatePicker, MuiPickersUtilsProvider } from "@material-ui/pickers";
 import DateFnsUtils from "@date-io/date-fns";
-import moment from "moment";
 import { ClippingTypes } from "../../util/type_enum";
-import api from "../../api";
 
 export default function Form() {
   const [uploadFile, setUploadFile] = useState(null);
@@ -31,8 +31,8 @@ export default function Form() {
     dateFrom: null,
     dateTo: null,
     type: 1,
-    databaseId: null,
-    secret: null,
+    databaseId: "",
+    secret: "",
     takeFirst: false,
     takeLast: false,
     limit: 0,
@@ -43,10 +43,9 @@ export default function Form() {
   const submitForm = async (e) => {
     e.preventDefault();
 
-    if (!isFormValid()) {
-      alert(
-        "Please fill:\n* Database id\n* Secret\n* Upload Clippings file"
-      );
+    const errors = getFormErrors();
+    if (errors.length > 0) {
+      alert(errors);
       return;
     }
 
@@ -84,18 +83,26 @@ export default function Form() {
     return dataArray;
   };
 
-  const isFormValid = () => {
-    var valid = true;
+  const getFormErrors = () => {
+    var errors = [];
 
-    if (uploadFile === null) {
-      valid = false;
-    } else if (data.databaseId === null) {
-      valid = false;
-    } else if (data.secret === null) {
-      valid = false;
+    if (!data.limit.toString().match("^[0-9]+$")) {
+      errors.push("Limit must be a number\n");
+    }
+    if (uploadFile && /(?:.([^.]+))?$/.exec(uploadFile.name)[1] !== "txt") {
+      errors.push("Please upload file with .txt extension\n");
+    }
+    if (!uploadFile) {
+      errors.push("Please upload Clippings file\n");
+    }
+    if (!data.databaseId) {
+      errors.push("Please enter database id\n");
+    }
+    if (!data.secret) {
+      errors.push("Please enter secret\n");
     }
 
-    return valid;
+    return errors.join("");
   };
 
   const handleFileChange = (e) => {
@@ -281,8 +288,9 @@ function HelpDialog({ handleDialog, openDialog }) {
           workspace secret and upload MyClippings.txt file from kindle.
         </Typography>
         <Typography variant="h6" gutterBottom>
-          In settings, you can select date, type and be able to take a selected
-          amount of clippings from the start or the back of the file.
+          In settings, you can select date and type. Select "Take first" or
+          "Take last" to limit clippings to be taken from the start or the back
+          of the file.
         </Typography>
       </DialogContent>
     </Dialog>
@@ -301,6 +309,7 @@ function MainInputs({
       <TextField
         className="Form-input"
         id="databaseId"
+        type="text"
         label="Database ID"
         value={data.databaseId}
         onChange={handleSearchChange}
@@ -310,6 +319,7 @@ function MainInputs({
         className="Form-input"
         margin="normal"
         id="secret"
+        type="text"
         label="Secret"
         value={data.secret}
         onChange={handleSearchChange}
@@ -327,6 +337,7 @@ function MainInputs({
         Upload MyClippings.txt
         <input
           type="file"
+          accept="text/plain"
           onChange={(e) => handleFileChange(e)}
           onClick={(e) => (e.target.value = null)}
           hidden
@@ -476,15 +487,22 @@ function SettingsAccordion({
           )}
 
           {data.takeFirst || data.takeLast ? (
-            <TextField
-              className="Form-settings-input"
-              margin="normal"
-              id="limit"
-              label="Limit"
-              value={data.limit}
-              onChange={handleSearchChange}
-              variant="outlined"
-            />
+            <div className="Fade-in">
+              <TextField
+                className="Form-settings-input"
+                type="text"
+                inputProps={{
+                  inputMode: "numeric",
+                  pattern: "/^-?d+(?:.d+)?$/g",
+                }}
+                margin="normal"
+                id="limit"
+                label="Limit"
+                value={data.limit}
+                onChange={handleSearchChange}
+                variant="outlined"
+              />
+            </div>
           ) : (
             <></>
           )}

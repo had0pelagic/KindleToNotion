@@ -89,3 +89,16 @@
   flex-direction: row;
   justify-content: center;
 }
+
+.Fade-in {
+  animation: Fade-in-animation 1s;
+}
+
+@keyframes Fade-in-animation {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
