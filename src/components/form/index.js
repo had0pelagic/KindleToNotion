@@ -50,7 +50,7 @@ export default function Form() {
     }
 
     setOpenBackdrop(true);
-    const response = await api.post("/clippings-notion", formData());
+    const response = await api.post("/notion", formData());
 
     if (response.status === 200) {
       setOpenBackdrop(false);
