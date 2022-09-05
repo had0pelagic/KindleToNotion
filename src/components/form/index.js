@@ -21,8 +21,9 @@ import {
 } from "@mui/material";
 import HelpIcon from "@mui/icons-material/Help";
 import ArrowDropDownRoundedIcon from "@mui/icons-material/ArrowDropDownRounded";
-import { DatePicker, MuiPickersUtilsProvider } from "@material-ui/pickers";
-import DateFnsUtils from "@date-io/date-fns";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { ClippingTypes } from "../../util/type_enum";
 
 export default function Form() {
@@ -67,11 +68,11 @@ export default function Form() {
     dataArray.append("File", uploadFile);
     dataArray.append(
       "DateFrom",
-      data.dateFrom ? moment(data.dateFrom).format("YYYY-MM-DD") : ""
+      data.dateFrom ? moment(data.dateFrom.$d).format("YYYY-MM-DD") : ""
     );
     dataArray.append(
       "DateTo",
-      data.dateTo ? moment(data.dateTo).format("YYYY-MM-DD") : ""
+      data.dateTo ? moment(data.dateTo.$d).format("YYYY-MM-DD") : ""
     );
     dataArray.append("Type", data.type);
     dataArray.append("DatabaseId", data.databaseId);
@@ -392,18 +393,16 @@ function SettingsAccordion({
       </AccordionSummary>
       <AccordionDetails>
         <div className="Form-settings-accordion-details">
-          <MuiPickersUtilsProvider utils={DateFnsUtils}>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
             <div className="Form-date">
               <DatePicker
                 className={`Form-settings-date${
                   data.dateFrom === null ? "" : "-button"
                 }`}
-                margin="normal"
                 label="Date from"
-                inputVariant="outlined"
                 value={data.dateFrom}
                 onChange={(e) => handleDateChange("dateFrom", e)}
-                animateYearScrolling
+                renderInput={(params) => <TextField {...params} />}
               />
               {data.dateFrom ? (
                 <Button
@@ -422,21 +421,19 @@ function SettingsAccordion({
                 <></>
               )}
             </div>
-            <div className="Form-date">
+
+            <div className="Form-date" style={{ marginTop: "15px" }}>
               <DatePicker
                 className={`Form-settings-date${
                   data.dateTo === null ? "" : "-button"
                 }`}
-                margin="normal"
                 label="Date to"
-                inputVariant="outlined"
                 value={data.dateTo}
                 onChange={(e) => handleDateChange("dateTo", e)}
-                animateYearScrolling
+                renderInput={(params) => <TextField {...params} />}
               />
               {data.dateTo ? (
                 <Button
-                  onClick={() => handleDateReset("dateTo")}
                   sx={{
                     minWidth: "1px",
                     maxWidth: "1px",
@@ -444,6 +441,7 @@ function SettingsAccordion({
                     maxHeight: "1px",
                     marginLeft: "4px",
                   }}
+                  onClick={() => handleDateReset("dateTo")}
                 >
                   X
                 </Button>
@@ -451,7 +449,7 @@ function SettingsAccordion({
                 <></>
               )}
             </div>
-          </MuiPickersUtilsProvider>
+          </LocalizationProvider>
           <TextField
             className="Form-settings-type"
             margin="normal"
